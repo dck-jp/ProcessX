@@ -31,7 +31,7 @@ await "cd ../../";
 
 // run with $"" automatically escaped and quoted
 var dir = "foo/foo bar";
-await run($"mkdir {dir}"); // mkdir "/foo/foo bar"
+await $"mkdir {dir}"; // mkdir "/foo/foo bar"
 
 // helper for Console.WriteLine and colorize
 log("red log.", System.ConsoleColor.Red);
@@ -39,7 +39,7 @@ using (color(System.ConsoleColor.Blue))
 {
     log("blue log");
     System.Console.WriteLine("also blue");
-    await run($"echo {"blue blue blue"}");
+    await $"echo {"blue blue blue"}";
 }
 
 // helper for web request
@@ -52,7 +52,7 @@ log($"You answered: {bear}");
 
 
 
-await ignore(run($"dotnet noinfo"));
+await ignore($"dotnet noinfo");
 
 
 

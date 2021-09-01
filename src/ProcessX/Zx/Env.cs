@@ -80,56 +80,25 @@ namespace Zx
             return Task.Delay(timeSpan, cancellationToken);
         }
 
-        public static async Task<string> withTimeout(FormattableString command, int seconds)
+        public static async Task<ProcessOutput> withTimeout(FormattableString command, int seconds)
         {
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds)))
             {
-                return (await ProcessStartAsync(EscapeFormattableString.Escape(command), cts.Token)).StdOut;
+                return await ProcessStartAsync(EscapeFormattableString.Escape(command), cts.Token);
             }
         }
 
-        public static async Task<(string StdOut, string StdError)> withTimeout2(FormattableString command, int seconds)
-        {
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds)))
-            {
-                return (await ProcessStartAsync(EscapeFormattableString.Escape(command), cts.Token));
-            }
-        }
-
-        public static async Task<string> withTimeout(FormattableString command, TimeSpan timeSpan)
+        public static async Task<ProcessOutput> withTimeout(FormattableString command, TimeSpan timeSpan)
         {
             using (var cts = new CancellationTokenSource(timeSpan))
             {
-                return (await ProcessStartAsync(EscapeFormattableString.Escape(command), cts.Token)).StdOut;
+                return await ProcessStartAsync(EscapeFormattableString.Escape(command), cts.Token);
             }
         }
 
-        public static async Task<(string StdOut, string StdError)> withTimeout2(FormattableString command, TimeSpan timeSpan)
+        public static async Task<ProcessOutput> withCancellation(FormattableString command, CancellationToken cancellationToken)
         {
-            using (var cts = new CancellationTokenSource(timeSpan))
-            {
-                return (await ProcessStartAsync(EscapeFormattableString.Escape(command), cts.Token));
-            }
-        }
-
-        public static async Task<string> withCancellation(FormattableString command, CancellationToken cancellationToken)
-        {
-            return (await ProcessStartAsync(EscapeFormattableString.Escape(command), cancellationToken)).StdOut;
-        }
-
-        public static async Task<(string StdOut, string StdError)> withCancellation2(FormattableString command, CancellationToken cancellationToken)
-        {
-            return (await ProcessStartAsync(EscapeFormattableString.Escape(command), cancellationToken));
-        }
-
-        public static Task<string> run(FormattableString command, CancellationToken cancellationToken = default)
-        {
-            return process(EscapeFormattableString.Escape(command), cancellationToken);
-        }
-
-        public static Task<(string StdOut, string StdError)> run2(FormattableString command, CancellationToken cancellationToken = default)
-        {
-            return process2(EscapeFormattableString.Escape(command), cancellationToken);
+            return await ProcessStartAsync(EscapeFormattableString.Escape(command), cancellationToken);
         }
 
         public static string escape(FormattableString command)
@@ -137,25 +106,20 @@ namespace Zx
             return EscapeFormattableString.Escape(command);
         }
 
-        public static async Task<string> process(string command, CancellationToken cancellationToken = default)
-        {
-            return (await ProcessStartAsync(command, cancellationToken)).StdOut;
-        }
-
-        public static async Task<(string StdOut, string StdError)> process2(string command, CancellationToken cancellationToken = default)
+        public static async Task<ProcessOutput> process(string command, CancellationToken cancellationToken = default)
         {
             return await ProcessStartAsync(command, cancellationToken);
         }
 
-        public static async Task<T> ignore<T>(Task<T> task)
+        public static async Task<ProcessOutput> ignore(FormattableString command, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await task.ConfigureAwait(false);
+                return await ProcessStartAsync(EscapeFormattableString.Escape(command), cancellationToken);
             }
-            catch (ProcessErrorException)
+            catch (ProcessErrorException ex)
             {
-                return default(T)!;
+                return new ProcessOutput("", string.Join(",",ex.ErrorOutput), ex.ExitCode);
             }
         }
 
@@ -188,7 +152,7 @@ namespace Zx
             return new ColorScope(current);
         }
 
-        static async Task<(string StdOut, string StdError)> ProcessStartAsync(string command, CancellationToken cancellationToken, bool forceSilcent = false)
+        static async Task<ProcessOutput> ProcessStartAsync(string command, CancellationToken cancellationToken, bool forceSilcent = false)
         {
             var cmd = shell + " " + command;
             var sbOut = new StringBuilder();
@@ -224,7 +188,7 @@ namespace Zx
 
             await Task.WhenAll(runStdout, runStdError).ConfigureAwait(false);
 
-            return (sbOut.ToString(), sbError.ToString());
+            return new ProcessOutput(sbOut.ToString(), sbError.ToString());
         }
 
         class ColorScope : IDisposable

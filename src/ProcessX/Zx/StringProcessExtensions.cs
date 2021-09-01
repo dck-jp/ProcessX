@@ -9,7 +9,7 @@ namespace Zx
 {
     public static class StringProcessExtensions
     {
-        public static TaskAwaiter<string> GetAwaiter(this string command)
+        public static TaskAwaiter<ProcessOutput> GetAwaiter(this string command)
         {
             return ProcessCommand(command).GetAwaiter();
         }
@@ -24,11 +24,11 @@ namespace Zx
             return ProcessCommands().GetAwaiter();
         }
 
-        static Task<string> ProcessCommand(string command)
+        static Task<ProcessOutput> ProcessCommand(string command)
         {
             if (TryChangeDirectory(command))
             {
-                return Task.FromResult("");
+                return Task.FromResult(new ProcessOutput("", ""));
             }
 
             return Env.process(command);
