@@ -242,20 +242,11 @@ await withTimeout($"echo foo", 10);
 // Env.withCancellation(string command, CancellationToken cancellationToken), execute process with cancellation. Require to use with "$".
 await withCancellation($"echo foo", terminateToken);
 
-// Env.run(FormattableString), automatically escaped and quoted. argument string requires to use with "$"
-await run($"mkdir {dir}");
-
 // Env.process(string command), same as `await string` but returns Task<string>.
 var t = process("dotnet info");
 
-// Env.ignore(Task), ignore ProcessErrorException
-await ignore(run($"dotnet noinfo"));
-
-// ***2 receives tuple of result (StdOut, StdError).
-var (stdout, stderror) = run2($"");
-var (stdout, stderror) = withTimeout2($"");
-var (stdout, stderror) = withCancellation2($"");
-var (stdout, stderror) = process2($"");
+// Env.ignore(string command), ignore ProcessErrorException. Require to use with "$".
+await ignore($"dotnet noinfo");
 ```
 
 `await string` does not escape argument so recommend to use `run($"string")` when use with argument.
